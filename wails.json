@@ -1,0 +1,20 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "LuluWoWResidualGuard",
+  "outputfilename": "露露时光服残留专杀",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Follen",
+    "email": "Follen@Follen.us"
+  },
+  "info": {
+    "companyName": "Follen",
+    "productName": "露露时光服残留专杀",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright 2026 Follen",
+    "comments": "时光服退出残留进程守护"
+  }
+}

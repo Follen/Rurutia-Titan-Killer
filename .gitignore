@@ -1,0 +1,8 @@
+build/bin
+build/icon-backup
+node_modules
+frontend/dist
+frontend/package.json.md5
+frontend/src/assets/fonts/nunito-v16-latin-regular.woff2
+frontend/src/assets/fonts/OFL.txt
+frontend/src/assets/images/logo-universal.png
