@@ -15,6 +15,7 @@ const (
 	gamePathMarker        = `\_classic_titan_\`
 	stillActive           = uint32(259)
 	processStatusRunning  = "running"
+	processStatusExiting  = "exiting"
 	processStatusResidual = "residual"
 )
 
@@ -101,14 +102,11 @@ func inspectProcess(pid, threadCount uint32) (inspectedProcess, bool) {
 	if err := windows.GetProcessTimes(handle, &created, &exited, &kernel, &user); err != nil {
 		return inspectedProcess{}, false
 	}
-	memoryMB := workingSetMB(handle)
+	memoryMB := workingSetMB(pid)
 
-	status := processStatusRunning
-	statusLabel := "正常运行"
+	status, statusLabel := classifyProcess(exitCode, threadCount)
 	threadID := uint32(0)
-	if exitCode != stillActive && threadCount == 1 {
-		status = processStatusResidual
-		statusLabel = "退出残留"
+	if status == processStatusResidual {
 		threadID, _ = soleThreadID(pid)
 	}
 
@@ -131,7 +129,27 @@ func inspectProcess(pid, threadCount uint32) (inspectedProcess, bool) {
 	}, true
 }
 
-func workingSetMB(handle windows.Handle) uint64 {
+func classifyProcess(exitCode, threadCount uint32) (string, string) {
+	if exitCode == stillActive {
+		return processStatusRunning, "正常运行"
+	}
+	if threadCount == 1 {
+		return processStatusResidual, "退出残留"
+	}
+	return processStatusExiting, "正在退出"
+}
+
+func workingSetMB(pid uint32) uint64 {
+	handle, err := windows.OpenProcess(
+		windows.PROCESS_QUERY_LIMITED_INFORMATION|windows.PROCESS_VM_READ,
+		false,
+		pid,
+	)
+	if err != nil {
+		return 0
+	}
+	defer windows.CloseHandle(handle)
+
 	counters := processMemoryCounters{Size: uint32(unsafe.Sizeof(processMemoryCounters{}))}
 	result, _, _ := getProcessMemoryInfo.Call(
 		uintptr(handle),
@@ -190,10 +208,13 @@ func soleThreadID(pid uint32) (uint32, error) {
 	return found, nil
 }
 
-func terminateResidual(expected processIdentity) error {
+func terminateResidual(expected processIdentity) (bool, error) {
 	process, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, expected.PID)
 	if err != nil {
-		return nil
+		if err == windows.ERROR_INVALID_PARAMETER {
+			return false, nil
+		}
+		return false, fmt.Errorf("PID %d 无法打开残留进程: %w", expected.PID, err)
 	}
 	var exitCode uint32
 	var created, exited, kernel, user windows.Filetime
@@ -202,19 +223,19 @@ func terminateResidual(expected processIdentity) error {
 	timesErr := windows.GetProcessTimes(process, &created, &exited, &kernel, &user)
 	windows.CloseHandle(process)
 	if pathErr != nil || exitErr != nil || timesErr != nil {
-		return fmt.Errorf("PID %d 复核失败", expected.PID)
+		return false, fmt.Errorf("PID %d 复核失败", expected.PID)
 	}
 	if exitCode == stillActive || created.Nanoseconds() != expected.CreationTime || !isTargetPath(path) {
-		return fmt.Errorf("PID %d 状态已变化，已跳过", expected.PID)
+		return false, nil
 	}
 
 	threadID, err := soleThreadID(expected.PID)
 	if err != nil {
-		return err
+		return false, err
 	}
 	thread, err := windows.OpenThread(windows.THREAD_TERMINATE|windows.THREAD_QUERY_LIMITED_INFORMATION, false, threadID)
 	if err != nil {
-		return fmt.Errorf("PID %d 无法打开残留线程: %w", expected.PID, err)
+		return false, fmt.Errorf("PID %d 无法打开残留线程: %w", expected.PID, err)
 	}
 	defer windows.CloseHandle(thread)
 
@@ -223,9 +244,9 @@ func terminateResidual(expected processIdentity) error {
 		if callErr == syscall.Errno(0) {
 			callErr = syscall.EINVAL
 		}
-		return fmt.Errorf("PID %d 清理失败: %w", expected.PID, callErr)
+		return false, fmt.Errorf("PID %d 清理失败: %w", expected.PID, callErr)
 	}
-	return nil
+	return true, nil
 }
 
 func formatCleanupAction(processes []inspectedProcess) string {

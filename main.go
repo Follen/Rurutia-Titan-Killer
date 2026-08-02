@@ -34,6 +34,12 @@ func main() {
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
 		OnBeforeClose:    app.beforeClose,
+		SingleInstanceLock: &options.SingleInstanceLock{
+			UniqueId: "c9d695ce-219c-4f1b-a0e4-9e38a2c0993e",
+			OnSecondInstanceLaunch: func(options.SecondInstanceData) {
+				app.ShowWindow()
+			},
+		},
 		Bind: []interface{}{
 			app,
 		},

@@ -1,0 +1,92 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - "[0-9]*.[0-9]*.[0-9]*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+
+      - name: Test Go code
+        run: go test ./...
+
+      - name: Apply tag version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $config = Get-Content wails.json -Raw | ConvertFrom-Json
+          $config.info.productVersion = $version
+          $config | ConvertTo-Json -Depth 10 | Set-Content wails.json -Encoding utf8
+
+      - name: Build Windows application
+        run: wails build -clean
+
+      - name: Verify Windows version metadata
+        shell: pwsh
+        run: |
+          $expectedVersion = (Get-Content wails.json -Raw | ConvertFrom-Json).info.productVersion
+          $version = (Get-Item -LiteralPath "build/bin/露露时光服残留专杀.exe").VersionInfo
+          if ($version.FileVersion -ne $expectedVersion) {
+            throw "Unexpected FileVersion: '$($version.FileVersion)' (expected '$expectedVersion')"
+          }
+          if ($version.ProductVersion -ne $expectedVersion) {
+            throw "Unexpected ProductVersion: '$($version.ProductVersion)' (expected '$expectedVersion')"
+          }
+          if ($version.ProductName -ne "露露时光服残留专杀") {
+            throw "Unexpected ProductName: '$($version.ProductName)'"
+          }
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rurutia-Titan-Killer-windows-amd64
+          path: build/bin/露露时光服残留专杀.exe
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $asset = "build/bin/露露时光服残留专杀.exe"
+          if (gh release view $tag 2>$null) {
+            gh release upload $tag $asset --clobber
+          } else {
+            gh release create $tag $asset `
+              --title "露露时光服残留专杀 $tag" `
+              --generate-notes
+          }

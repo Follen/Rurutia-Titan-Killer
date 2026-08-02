@@ -89,7 +89,7 @@ func (a *App) startup(ctx context.Context) {
 	if a.enabled {
 		a.startGuardian()
 	} else {
-		go a.scan(false)
+		go a.scan(context.Background(), false)
 	}
 }
 
@@ -127,7 +127,7 @@ func (a *App) SetGuardianEnabled(enabled bool) GuardianStatus {
 	if enabled && changed {
 		a.startGuardian()
 	} else if !enabled {
-		go a.scan(false)
+		go a.scan(context.Background(), false)
 	}
 
 	return a.GetStatus()
@@ -152,7 +152,7 @@ func (a *App) startGuardian() {
 	a.mu.Unlock()
 
 	go func() {
-		a.scan(true)
+		a.scan(ctx, true)
 		ticker := time.NewTicker(guardianScanInterval)
 		defer ticker.Stop()
 		for {
@@ -160,13 +160,13 @@ func (a *App) startGuardian() {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				a.scan(true)
+				a.scan(ctx, true)
 			}
 		}
 	}()
 }
 
-func (a *App) scan(clean bool) {
+func (a *App) scan(ctx context.Context, clean bool) {
 	a.scanMu.Lock()
 	defer a.scanMu.Unlock()
 
@@ -183,14 +183,20 @@ func (a *App) scan(clean bool) {
 	var cleanupErrors []error
 	if clean {
 		for _, process := range processes {
+			if !a.cleaningAllowed(ctx) {
+				break
+			}
 			if process.Status != processStatusResidual {
 				continue
 			}
-			if err := terminateResidual(process.identity); err != nil {
+			terminated, err := terminateResidual(process.identity)
+			if err != nil {
 				cleanupErrors = append(cleanupErrors, err)
 				continue
 			}
-			attempted = append(attempted, process)
+			if terminated {
+				attempted = append(attempted, process)
+			}
 		}
 	}
 
@@ -247,6 +253,17 @@ func (a *App) scan(clean bool) {
 	if len(killed) > 0 {
 		a.persistSettings()
 	}
+}
+
+func (a *App) cleaningAllowed(ctx context.Context) bool {
+	select {
+	case <-ctx.Done():
+		return false
+	default:
+	}
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+	return a.enabled
 }
 
 func containsProcess(processes []inspectedProcess, expected processIdentity) bool {

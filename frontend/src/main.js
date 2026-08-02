@@ -126,6 +126,7 @@ app.innerHTML = `
 
 const elements = {
   toggle: document.querySelector('#guardian-toggle'),
+  switchControl: document.querySelector('.switch'),
   toggleLabel: document.querySelector('#toggle-label'),
   stateKicker: document.querySelector('#state-kicker'),
   guardHeadline: document.querySelector('#guard-headline'),
@@ -143,6 +144,12 @@ const elements = {
   activity: document.querySelector('#activity'),
   activityIndicator: document.querySelector('#activity-indicator'),
 };
+
+function setSwitchVisual(enabled) {
+  elements.toggle.checked = enabled;
+  elements.switchControl.classList.toggle('is-on', enabled);
+  elements.switchControl.setAttribute('aria-checked', String(enabled));
+}
 
 document.querySelector('#window-minimise').addEventListener('click', () => WindowMinimise());
 document.querySelector('#window-maximise').addEventListener('click', () => WindowToggleMaximise());
@@ -270,7 +277,7 @@ function render(status) {
   const running = status.processes.filter((process) => process.status === 'running').length;
   const residual = status.processes.filter((process) => process.status === 'residual').length;
 
-  elements.toggle.checked = status.enabled;
+  setSwitchVisual(status.enabled);
   elements.toggleLabel.textContent = status.enabled ? '已开启' : '已关闭';
   elements.stateKicker.textContent = status.stateLabel;
   elements.guardHeadline.textContent = status.enabled ? '残留进程自动清理中' : '等待开启守护';
@@ -311,11 +318,13 @@ async function refresh() {
 }
 
 elements.toggle.addEventListener('change', async () => {
+  const enabled = elements.toggle.checked;
+  setSwitchVisual(enabled);
   elements.toggle.disabled = true;
   try {
-    render(await SetGuardianEnabled(elements.toggle.checked));
+    render(await SetGuardianEnabled(enabled));
   } catch (error) {
-    elements.toggle.checked = !elements.toggle.checked;
+    setSwitchVisual(!enabled);
     elements.activity.textContent = String(error);
     elements.activity.className = 'error';
   } finally {

@@ -151,8 +151,10 @@ h1, h2, p { margin: 0; }
   transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
 }
 
-.switch input:checked + .switch-track { border-color: #2aa56d; background: #2aa56d; }
-.switch input:checked + .switch-track .switch-thumb { transform: translateX(22px); }
+.switch input:checked + .switch-track,
+.switch.is-on .switch-track { border-color: #2aa56d; background: #2aa56d; }
+.switch input:checked + .switch-track .switch-thumb,
+.switch.is-on .switch-thumb { transform: translateX(22px); }
 .switch input:focus-visible + .switch-track { outline: 3px solid rgba(42, 165, 109, .24); outline-offset: 2px; }
 .switch input:disabled + .switch-track { cursor: wait; opacity: .55; }
 
@@ -292,11 +294,13 @@ h1 {
 .instance-row:hover { background: #f4f6f5; }
 .instance-state { width: 3px; height: 34px; flex: 0 0 auto; border-radius: 2px; background: #2aa56d; }
 .instance-row.residual .instance-state { background: #dc5b4e; }
+.instance-row.exiting .instance-state { background: #d88a3f; }
 .instance-copy { min-width: 0; flex: 1; }
 .instance-title { gap: 7px; }
 .instance-title strong { font-size: 12px; }
 .instance-title span { color: #21845a; font-size: 9px; font-weight: 800; }
 .instance-row.residual .instance-title span { color: #c1493e; }
+.instance-row.exiting .instance-title span { color: #a8672f; }
 .instance-copy p { margin-top: 3px; color: #7d837f; font-size: 9px; }
 
 .instance-path {
@@ -315,6 +319,7 @@ h1 {
 .instance-row:hover .instance-path { max-width: 100%; opacity: 1; }
 .instance-row > svg { width: 16px; flex: 0 0 auto; color: #2aa56d; }
 .instance-row.residual > svg { color: #dc5b4e; }
+.instance-row.exiting > svg { color: #d88a3f; }
 
 .history-row {
   display: grid;
