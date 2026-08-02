@@ -87,10 +87,29 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           $asset = "build/bin/露露时光服残留专杀.exe"
-          if (gh release view $tag 2>$null) {
-            gh release upload $tag $asset --clobber
-          } else {
-            gh release create $tag $asset `
+          $assetName = "露露时光服残留专杀.exe"
+          if (-not (gh release view $tag 2>$null)) {
+            gh release create $tag `
               --title "露露时光服残留专杀 $tag" `
               --generate-notes
           }
+
+          $release = gh api "repos/${{ github.repository }}/releases/tags/$tag" | ConvertFrom-Json
+          $release.assets |
+            Where-Object { $_.name -in @($assetName, "default.exe") } |
+            ForEach-Object {
+              gh api --method DELETE "repos/${{ github.repository }}/releases/assets/$($_.id)"
+            }
+
+          $encodedName = [Uri]::EscapeDataString($assetName)
+          $uploadUrl = "https://uploads.github.com/repos/${{ github.repository }}/releases/$($release.id)/assets?name=$encodedName"
+          Invoke-RestMethod `
+            -Method Post `
+            -Uri $uploadUrl `
+            -Headers @{
+              Authorization = "Bearer $env:GH_TOKEN"
+              Accept = "application/vnd.github+json"
+              "X-GitHub-Api-Version" = "2022-11-28"
+            } `
+            -ContentType "application/octet-stream" `
+            -InFile $asset
