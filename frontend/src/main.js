@@ -274,8 +274,10 @@ function renderHistory(history) {
 }
 
 function render(status) {
-  const running = status.processes.filter((process) => process.status === 'running').length;
-  const residual = status.processes.filter((process) => process.status === 'residual').length;
+  const processes = status.processes ?? [];
+  const history = status.history ?? [];
+  const running = processes.filter((process) => process.status === 'running').length;
+  const residual = processes.filter((process) => process.status === 'residual').length;
 
   setSwitchVisual(status.enabled);
   elements.toggleLabel.textContent = status.enabled ? '已开启' : '已关闭';
@@ -287,11 +289,11 @@ function render(status) {
   elements.runningCount.textContent = running;
   elements.residualCount.textContent = residual;
   elements.killedCount.textContent = status.totalKilled;
-  elements.processCount.textContent = `${status.processes.length} 个进程`;
-  elements.historyCount.textContent = status.history.length ? `${status.history.length} 条记录` : '尚无记录';
+  elements.processCount.textContent = `${processes.length} 个进程`;
+  elements.historyCount.textContent = history.length ? `${history.length} 条记录` : '尚无记录';
 
-  renderProcesses(status.processes);
-  renderHistory(status.history);
+  renderProcesses(processes);
+  renderHistory(history);
 
   if (status.lastError) {
     elements.activity.textContent = status.lastError;

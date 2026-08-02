@@ -295,8 +295,8 @@ func (a *App) statusLocked() GuardianStatus {
 		LastError:    a.lastError,
 		TotalKilled:  a.totalKilled,
 		ScanInterval: int(guardianScanInterval / time.Second),
-		Processes:    append([]ProcessView(nil), a.processes...),
-		History:      append([]CleanupRecord(nil), a.history...),
+		Processes:    append(make([]ProcessView, 0, len(a.processes)), a.processes...),
+		History:      append(make([]CleanupRecord, 0, len(a.history)), a.history...),
 	}
 }
 
