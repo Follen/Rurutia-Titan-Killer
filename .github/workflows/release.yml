@@ -72,6 +72,14 @@ jobs:
             throw "Unexpected ProductName: '$($version.ProductName)'"
           }
 
+      - name: Package Windows release
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -LiteralPath "build/bin/露露时光服残留专杀.exe" `
+            -DestinationPath "build/bin/Rurutia-Titan-Killer-windows-amd64.zip" `
+            -Force
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
@@ -86,8 +94,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.ref_name }}"
-          $asset = "build/bin/露露时光服残留专杀.exe"
-          $assetName = "露露时光服残留专杀.exe"
+          $asset = "build/bin/Rurutia-Titan-Killer-windows-amd64.zip"
+          $assetName = "Rurutia-Titan-Killer-windows-amd64.zip"
           if (-not (gh release view $tag 2>$null)) {
             gh release create $tag `
               --title "露露时光服残留专杀 $tag" `
