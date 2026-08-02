@@ -72,6 +72,32 @@ jobs:
             throw "Unexpected ProductName: '$($version.ProductName)'"
           }
 
+      - name: Verify administrator execution manifest
+        shell: pwsh
+        run: |
+          $mt = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" `
+            -Filter mt.exe `
+            -Recurse |
+            Where-Object { $_.FullName -match '\\x64\\mt\.exe$' } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $mt) {
+            throw "Windows SDK mt.exe was not found"
+          }
+
+          $exe = (Resolve-Path "build/bin/枫岚时光服残留进程杀手.exe").Path
+          $manifestPath = Join-Path $env:RUNNER_TEMP "follen-tititan-Killer.exe.manifest"
+          & $mt.FullName -nologo "-inputresource:$exe;#1" "-out:$manifestPath"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to extract the application manifest"
+          }
+
+          [xml]$manifest = Get-Content $manifestPath -Raw
+          $executionLevel = $manifest.SelectSingleNode("//*[local-name()='requestedExecutionLevel']")
+          if ($executionLevel.level -ne "requireAdministrator") {
+            throw "Unexpected requestedExecutionLevel: '$($executionLevel.level)'"
+          }
+
       - name: Package Windows release
         shell: pwsh
         run: |
