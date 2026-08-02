@@ -1,6 +1,11 @@
 package main
 
-import "testing"
+import (
+	"errors"
+	"testing"
+
+	"golang.org/x/sys/windows"
+)
 
 func TestClassifyProcess(t *testing.T) {
 	tests := []struct {
@@ -40,5 +45,84 @@ func TestIsTargetPath(t *testing.T) {
 		if got := isTargetPath(test.path); got != test.want {
 			t.Errorf("isTargetPath(%q) = %t, want %t", test.path, got, test.want)
 		}
+	}
+}
+
+func TestOpenThreadForTerminationEnablesDebugPrivilegeAfterAccessDenied(t *testing.T) {
+	originalOpenThread := openThread
+	originalEnableDebugPrivilege := enableDebugPrivilegeForTermination
+	originalRecordPrivilege := recordPrivilegeForTermination
+	t.Cleanup(func() {
+		openThread = originalOpenThread
+		enableDebugPrivilegeForTermination = originalEnableDebugPrivilege
+		recordPrivilegeForTermination = originalRecordPrivilege
+	})
+	recordPrivilegeForTermination = func(string, error) {}
+
+	attempts := 0
+	openThread = func(desiredAccess uint32, inheritHandle bool, threadID uint32) (windows.Handle, error) {
+		attempts++
+		if desiredAccess != windows.THREAD_TERMINATE {
+			t.Fatalf("desired access = %#x, want THREAD_TERMINATE", desiredAccess)
+		}
+		if inheritHandle {
+			t.Fatal("thread handle should not be inheritable")
+		}
+		if threadID != 42 {
+			t.Fatalf("thread ID = %d, want 42", threadID)
+		}
+		if attempts == 1 {
+			return 0, windows.ERROR_ACCESS_DENIED
+		}
+		return windows.Handle(123), nil
+	}
+	privilegeEnabled := false
+	enableDebugPrivilegeForTermination = func() error {
+		privilegeEnabled = true
+		return nil
+	}
+
+	handle, err := openThreadForTermination(42, "test")
+	if err != nil {
+		t.Fatalf("openThreadForTermination returned error: %v", err)
+	}
+	if handle != windows.Handle(123) {
+		t.Fatalf("handle = %v, want 123", handle)
+	}
+	if attempts != 2 {
+		t.Fatalf("attempts = %d, want 2", attempts)
+	}
+	if !privilegeEnabled {
+		t.Fatal("debug privilege was not enabled")
+	}
+}
+
+func TestOpenThreadForTerminationDoesNotRetryOtherErrors(t *testing.T) {
+	originalOpenThread := openThread
+	originalEnableDebugPrivilege := enableDebugPrivilegeForTermination
+	originalRecordPrivilege := recordPrivilegeForTermination
+	t.Cleanup(func() {
+		openThread = originalOpenThread
+		enableDebugPrivilegeForTermination = originalEnableDebugPrivilege
+		recordPrivilegeForTermination = originalRecordPrivilege
+	})
+	recordPrivilegeForTermination = func(string, error) {}
+
+	attempts := 0
+	openThread = func(uint32, bool, uint32) (windows.Handle, error) {
+		attempts++
+		return 0, windows.ERROR_INVALID_PARAMETER
+	}
+	enableDebugPrivilegeForTermination = func() error {
+		t.Fatal("debug privilege should not be enabled")
+		return nil
+	}
+
+	_, err := openThreadForTermination(42, "test")
+	if !errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
+		t.Fatalf("error = %v, want ERROR_INVALID_PARAMETER", err)
+	}
+	if attempts != 1 {
+		t.Fatalf("attempts = %d, want 1", attempts)
 	}
 }

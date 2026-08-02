@@ -81,6 +81,8 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	privilegeErr := enableDebugPrivilege()
+	recordPrivilegeDiagnostic("gui", privilegeErr)
 	a.startTray()
 	stored := loadSettings()
 	a.enabled = stored.Enabled

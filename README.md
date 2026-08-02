@@ -10,6 +10,9 @@
 - 只处理 `_classic_titan_` 客户端目录中的进程
 - 仅清理退出码已结束且只剩一个线程的残留实例
 - 保留仍处于 `STILL_ACTIVE` 状态的正常游戏实例
+- 启动时请求管理员权限并主动启用 `SeDebugPrivilege`
+- 依次尝试线程终止、进程终止，并在权限仍被拒绝时交给按需启动的 LocalSystem 服务
+- GUI 与服务通过仅允许 SYSTEM 和管理员访问的本机命名管道通信
 - 启动守护时清理已有残留，之后持续自动清理
 - 持久化记录清理时间、PID、线程数和释放内存
 - 无边框窗口、自绘窗口控制与系统托盘
@@ -41,3 +44,5 @@ wails build
 ## 判定规则
 
 清理前会再次核对进程路径、PID、创建时间、退出码和线程数量。退出码为 `259 (STILL_ACTIVE)` 的实例不会进入清理流程。
+
+诊断日志位于 `C:\ProgramData\Follen\follen-tititan-Killer\cleanup.log`，记录 GUI/服务与目标进程的完整性级别、`SeDebugPrivilege` 启用结果以及原始 Win32 错误码。

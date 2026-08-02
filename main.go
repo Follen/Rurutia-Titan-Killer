@@ -13,6 +13,15 @@ import (
 var assets embed.FS
 
 func main() {
+	if serviceProcess, err := runAsCleanupService(); serviceProcess {
+		if err != nil {
+			recordServiceDiagnostic("service.run", err)
+		}
+		return
+	} else if err != nil {
+		recordServiceDiagnostic("service.detect", err)
+	}
+
 	// Create an instance of the app structure
 	app := NewApp()
 
