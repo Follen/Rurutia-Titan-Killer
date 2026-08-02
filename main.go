@@ -18,7 +18,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "露露时光服残留专杀",
+		Title:     "枫岚时光服残留进程杀手",
 		Width:     940,
 		Height:    720,
 		MinWidth:  780,

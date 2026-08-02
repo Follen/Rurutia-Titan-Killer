@@ -1,4 +1,4 @@
-module github.com/Follen/Rurutia-Titan-Killer
+module github.com/Follen/follen-tititan-Killer
 
 go 1.23.0
 

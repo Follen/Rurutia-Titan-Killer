@@ -20,8 +20,8 @@ func (a *App) startTray() {
 
 func (a *App) trayReady() {
 	systray.SetIcon(trayIcon)
-	systray.SetTitle("露露时光服残留专杀")
-	systray.SetTooltip("露露时光服残留专杀")
+	systray.SetTitle("枫岚时光服残留进程杀手")
+	systray.SetTooltip("枫岚时光服残留进程杀手")
 
 	showItem := systray.AddMenuItem("显示主窗口", "显示守护面板")
 	systray.AddSeparator()

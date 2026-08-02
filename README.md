@@ -1,6 +1,6 @@
-# Rurutia Titan Killer
+# 枫岚时光服残留进程杀手
 
-[![Windows Release](https://github.com/Follen/Rurutia-Titan-Killer/actions/workflows/release.yml/badge.svg)](https://github.com/Follen/Rurutia-Titan-Killer/actions/workflows/release.yml)
+[![Windows Release](https://github.com/Follen/follen-tititan-Killer/actions/workflows/release.yml/badge.svg)](https://github.com/Follen/follen-tititan-Killer/actions/workflows/release.yml)
 
 一个面向 Windows 的魔兽世界时光服退出残留进程守护工具，使用 Wails 2、Go 和原生 Windows API 构建。
 
@@ -34,7 +34,7 @@ wails dev
 wails build
 ```
 
-构建结果位于 `build/bin/露露时光服残留专杀.exe`。
+构建结果位于 `build/bin/枫岚时光服残留进程杀手.exe`。
 
 推送形如 `0.0.1` 的版本 tag 后，GitHub Actions 会自动构建 Windows EXE 并创建对应 Release。
 
