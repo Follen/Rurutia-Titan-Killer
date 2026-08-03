@@ -1,6 +1,6 @@
-# 枫岚时光服残留进程杀手
+# 荔枝时光服进程专清工具
 
-[![Windows Release](https://github.com/Follen/follen-tititan-Killer/actions/workflows/release.yml/badge.svg)](https://github.com/Follen/follen-tititan-Killer/actions/workflows/release.yml)
+[![Windows Release](https://github.com/Follen/lychee-titan-cleanner/actions/workflows/release.yml/badge.svg)](https://github.com/Follen/lychee-titan-cleanner/actions/workflows/release.yml)
 
 一个面向 Windows 的魔兽世界时光服退出残留进程守护工具，使用 Wails 2、Go 和原生 Windows API 构建。
 
@@ -37,7 +37,7 @@ wails dev
 wails build
 ```
 
-构建结果位于 `build/bin/枫岚时光服残留进程杀手.exe`。
+构建结果位于 `build/bin/荔枝时光服进程专清工具.exe`。
 
 推送形如 `0.0.1` 的版本 tag 后，GitHub Actions 会自动构建 Windows EXE 并创建对应 Release。
 
@@ -45,4 +45,4 @@ wails build
 
 清理前会再次核对进程路径、PID、创建时间、退出码和线程数量。退出码为 `259 (STILL_ACTIVE)` 的实例不会进入清理流程。
 
-诊断日志位于 `C:\ProgramData\Follen\follen-tititan-Killer\cleanup.log`，记录 GUI/服务与目标进程的完整性级别、`SeDebugPrivilege` 启用结果以及原始 Win32 错误码。
+诊断日志位于 `C:\ProgramData\Follen\lychee-titan-cleanner\cleanup.log`，记录 GUI/服务与目标进程的完整性级别、`SeDebugPrivilege` 启用结果以及原始 Win32 错误码。

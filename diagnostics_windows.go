@@ -44,7 +44,7 @@ func diagnosticsPath() string {
 	if programData == "" {
 		programData = `C:\ProgramData`
 	}
-	return filepath.Join(programData, "Follen", "follen-tititan-Killer", "cleanup.log")
+	return filepath.Join(programData, "Follen", "lychee-titan-cleanner", "cleanup.log")
 }
 
 func processIntegrityLevel(process windows.Handle) (string, error) {

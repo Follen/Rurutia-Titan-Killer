@@ -192,7 +192,7 @@ func (tray *windowsTray) initialize() error {
 	}
 	tray.instance = windows.Handle(module)
 
-	className, err := windows.UTF16PtrFromString("FenglanResidualKillerTrayWindow")
+	className, err := windows.UTF16PtrFromString("LycheeTitanCleannerTrayWindow")
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (tray *windowsTray) initialize() error {
 		Icon:            icon,
 	}
 	tray.notify.Size = uint32(unsafe.Sizeof(tray.notify))
-	tip, _ := windows.UTF16FromString("枫岚时光服残留进程杀手")
+	tip, _ := windows.UTF16FromString("荔枝时光服进程专清工具")
 	copy(tray.notify.Tip[:], tip)
 	if ok, _, notifyErr := trayShellNotifyIcon.Call(nimAdd, uintptr(unsafe.Pointer(&tray.notify))); ok == 0 {
 		return fmt.Errorf("添加系统托盘图标失败: %w", notifyErr)
@@ -281,7 +281,7 @@ func loadTrayIcon(data []byte) (windows.Handle, string, error) {
 		lrDefaultSize  = 0x0040
 	)
 	hash := sha256.Sum256(data)
-	path := filepath.Join(os.TempDir(), fmt.Sprintf("fenglan-tray-%x.ico", hash[:8]))
+	path := filepath.Join(os.TempDir(), fmt.Sprintf("lychee-titan-cleanner-tray-%x.ico", hash[:8]))
 	if err := os.WriteFile(path, data, 0o600); err != nil {
 		return 0, "", fmt.Errorf("写入托盘图标失败: %w", err)
 	}

@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	cleanupServiceName        = "FenglanWoWResidualKillerService"
-	cleanupServiceDisplayName = "枫岚时光服残留进程杀手服务"
-	cleanupPipeName           = `\\.\pipe\FenglanWoWResidualKiller.v1`
+	cleanupServiceName        = "LycheeTitanCleannerService"
+	cleanupServiceDisplayName = "荔枝时光服进程专清工具服务"
+	cleanupPipeName           = `\\.\pipe\LycheeTitanCleanner.v1`
 	cleanupProtocolVersion    = 1
 	maxCleanupMessageSize     = 4096
 	cleanupIOTimeout          = 5 * time.Second
@@ -228,7 +228,7 @@ func ensureCleanupServiceRunning() error {
 	if errors.Is(err, windows.ERROR_SERVICE_DOES_NOT_EXIST) {
 		service, err = manager.CreateService(cleanupServiceName, executable, mgr.Config{
 			DisplayName:      cleanupServiceDisplayName,
-			Description:      "仅处理经完整身份复核的枫岚时光服退出残留进程",
+			Description:      "仅处理经完整身份复核的荔枝时光服退出残留进程",
 			StartType:        mgr.StartManual,
 			ServiceStartName: "LocalSystem",
 		}, "--service")
@@ -262,7 +262,7 @@ func ensureCleanupServiceRunning() error {
 		}
 		config.BinaryPathName = desiredBinaryPath
 		config.DisplayName = cleanupServiceDisplayName
-		config.Description = "仅处理经完整身份复核的枫岚时光服退出残留进程"
+		config.Description = "仅处理经完整身份复核的荔枝时光服退出残留进程"
 		config.StartType = mgr.StartManual
 		config.ServiceType = windows.SERVICE_WIN32_OWN_PROCESS
 		config.ServiceStartName = "LocalSystem"

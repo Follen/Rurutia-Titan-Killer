@@ -1,5 +1,5 @@
 import './style.css';
-import appIcon from './assets/images/fenglan-icon.png';
+import appIcon from './assets/images/lychee-icon.png';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
@@ -28,7 +28,7 @@ app.innerHTML = `
     <div id="titlebar" class="titlebar">
       <div class="window-brand">
         <img src="${appIcon}" alt="">
-        <span>枫岚时光服残留进程杀手</span>
+        <span>荔枝时光服进程专清工具</span>
       </div>
       <div class="window-controls">
         <button id="window-minimise" type="button" title="最小化" aria-label="最小化">

@@ -1,4 +1,4 @@
-module github.com/Follen/follen-tititan-Killer
+module github.com/Follen/lychee-titan-cleanner
 
 go 1.23.0
 

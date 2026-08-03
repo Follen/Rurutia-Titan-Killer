@@ -306,7 +306,7 @@ func settingsPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	dir = filepath.Join(dir, "FenglanWoWResidualKiller")
+	dir = filepath.Join(dir, "LycheeTitanCleanner")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", err
 	}
