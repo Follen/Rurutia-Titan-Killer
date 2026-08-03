@@ -10,8 +10,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/getlantern/systray"
 )
 
 const (
@@ -70,6 +68,7 @@ type App struct {
 	history     []CleanupRecord
 	quitting    atomic.Bool
 	trayStarted atomic.Bool
+	tray        atomic.Pointer[windowsTray]
 }
 
 func NewApp() *App {
@@ -96,8 +95,8 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) shutdown(context.Context) {
-	if a.trayStarted.Load() {
-		systray.Quit()
+	if tray := a.tray.Load(); tray != nil {
+		tray.Stop()
 	}
 	a.mu.Lock()
 	if a.cancel != nil {
